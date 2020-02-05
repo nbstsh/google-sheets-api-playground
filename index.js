@@ -1,9 +1,10 @@
 const fs = require('fs');
 const readline = require('readline');
 const { google } = require('googleapis');
+const { SPREAD_SHEET_ID } = require('./config');
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -82,21 +83,39 @@ function listMajors(auth) {
 	const sheets = google.sheets({ version: 'v4', auth });
 	sheets.spreadsheets.values.get(
 		{
-			spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-			range: 'Class Data!A2:E'
+			spreadsheetId: SPREAD_SHEET_ID,
+			range: 'sheet1!A1:E6'
 		},
 		(err, res) => {
 			if (err) return console.log('The API returned an error: ' + err);
 			const rows = res.data.values;
 			if (rows.length) {
-				console.log('Name, Major:');
-				// Print columns A and E, which correspond to indices 0 and 4.
-				rows.map(row => {
-					console.log(`${row[0]}, ${row[4]}`);
+				rows.forEach(row => {
+					console.log(row);
 				});
 			} else {
 				console.log('No data found.');
 			}
 		}
 	);
+
+	sheets.spreadsheets.values
+		.update({
+			spreadsheetId: SPREAD_SHEET_ID,
+			range: 'sheet1!C1:D3',
+			valueInputOption: 'RAW',
+			requestBody: {
+				majorDimension: 'ROWS',
+				values: [
+					['sample1', 'sample2'],
+					['test1', 'test2']
+				]
+			}
+		})
+		.then(res => {
+			console.log(res);
+		})
+		.catch(err => {
+			console.log(err);
+		});
 }
